@@ -69,6 +69,60 @@ CREATE TABLE IF NOT EXISTS published_books(
 
 
 # ------------------ FUNCTIONS ------------------
+def insert_sample_data():
+    cursor.execute("DELETE FROM published_books")
+    cursor.execute("DELETE FROM all_books")
+    cursor.execute("DELETE FROM quantity_books")
+    cursor.execute("DELETE FROM student")
+
+    cursor.executemany(
+        "INSERT INTO student VALUES(?,?)",
+        [
+            ('0176AL241084','Nipurn Bandi'),
+            ('0176AL241085','Sankalp Sharma'),
+            ('0176AL241086','OM Kumar'),
+            ('0176AL241087','OM Gupta'),
+            ('0176AL241088','Anand Bhaghel')
+        ]
+    )
+
+    cursor.executemany(
+        "INSERT INTO quantity_books VALUES(?,?,?,?)",
+        [
+            ('B001','Python Programming','Computer Science',3),
+            ('B002','Data Structures','Computer Science',2),
+            ('B003','Database Systems','Computer Science',2),
+            ('B004','Operating Systems','Computer Science',2),
+            ('B005','Computer Networks','Computer Science',1),
+            ('B006','Artificial Intelligence','AI',2),
+            ('B007','Machine Learning','AI',1)
+        ]
+    )
+
+    cursor.executemany(
+        "INSERT INTO all_books VALUES(?,?,?,0)",
+        [
+            ('PY001','B001','Python Programming'),
+            ('PY002','B001','Python Programming'),
+            ('PY003','B001','Python Programming'),
+            ('DS001','B002','Data Structures'),
+            ('DS002','B002','Data Structures'),
+            ('DB001','B003','Database Systems'),
+            ('DB002','B003','Database Systems'),
+            ('OS001','B004','Operating Systems'),
+            ('OS002','B004','Operating Systems'),
+            ('CN001','B005','Computer Networks'),
+            ('AI001','B006','Artificial Intelligence'),
+            ('AI002','B006','Artificial Intelligence'),
+            ('ML001','B007','Machine Learning')
+        ]
+    )
+
+    connect.commit()
+
+
+
+
 def show_student_details(enrollment_no):
     cursor.execute(
         "SELECT enrollment_no,name FROM student WHERE enrollment_no=?",
@@ -151,6 +205,7 @@ def issue_book(enrollment_no):
 
 # ------------------ MAIN ------------------
 def main():
+    
 
     enrollment_no = input("Enter your enrollment number: ")
     show_student_details(enrollment_no)
@@ -167,6 +222,10 @@ def main():
         pass
     elif choice == 3:
         pass
+    
+    cursor.execute("SELECT * FROM published_books")
+    data=cursor.fetchall()
+    print(data)
 
     connect.close()
 
