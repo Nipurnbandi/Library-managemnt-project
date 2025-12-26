@@ -227,6 +227,13 @@ def main():
     
     
     enrollment_no = input("Enter your enrollment number: ")
+    cursor.execute("SELECT * FROM student WHERE enrollment_no=?",(enrollment_no,))
+    data=cursor.fetchone()
+    if data is None:
+        print("No such roll number exist")
+        return
+
+
     show_student_details(enrollment_no)
     fine=calc_renew(enrollment_no)
     print("\nOverdue:",fine)
