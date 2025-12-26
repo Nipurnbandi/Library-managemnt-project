@@ -6,7 +6,7 @@ from datetime import date, timedelta, datetime
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_path = os.path.join(BASE_DIR, "Library.db")
 
-connect = sqlite3.connect(db_path)   # ✅ use variable
+connect = sqlite3.connect(db_path)   
 cursor = connect.cursor()
 cursor.execute("PRAGMA foreign_keys = ON")
 # ------------------ DB CONNECTION ------------------
@@ -120,6 +120,31 @@ def insert_sample_data():
 
 
 
+def calc_renew(enrollment_no):
+    cursor.execute(
+        "SELECT renew_date FROM published_books WHERE enrollment_no=?",
+        (enrollment_no,)
+    )
+
+    fine = 0
+    for (renew_date,) in cursor.fetchall():
+        renew_date = datetime.strptime(renew_date, "%Y-%m-%d").date()
+        overdue = (date.today() - renew_date).days
+        if overdue > 0:
+            fine += overdue * 10
+    return fine
+        
+
+
+
+def no_of_book_issued(enrollment_no):
+    cursor.execute("SELECT COUNT(*) FROM published_books WHERE enrollment_no=?",(enrollment_no,))
+    data=cursor.fetchone()[0]
+    return data
+       
+
+
+
 def show_student_details(enrollment_no):
     cursor.execute(
         "SELECT enrollment_no,name FROM student WHERE enrollment_no=?",
@@ -136,19 +161,15 @@ def show_student_details(enrollment_no):
     print("Name:", student[1])
 
     cursor.execute(
-        "SELECT book_name,renew_date FROM published_books WHERE enrollment_no=?",
+        "SELECT book_name,issued_date,renew_date FROM published_books WHERE enrollment_no=?",
         (enrollment_no,)
     )
 
-    fine = 0
-    for book_name, renew_date in cursor.fetchall():
-        renew_date = datetime.strptime(renew_date, "%Y-%m-%d").date()
-        overdue = (date.today() - renew_date).days
-        if overdue > 0:
-            fine += overdue * 10
-        print(book_name, renew_date)
+    
+    for book_name,issued_date,renew_date in cursor.fetchall():
+        print(book_name,issued_date,renew_date)
 
-    print("Fine amount:", fine)
+    
 
 
 
@@ -202,11 +223,32 @@ def issue_book(enrollment_no):
 
 # ------------------ MAIN ------------------
 def main():
-    insert_sample_data()
+    
     
     
     enrollment_no = input("Enter your enrollment number: ")
     show_student_details(enrollment_no)
+    fine=calc_renew(enrollment_no)
+    print("\nOverdue:",fine)
+
+    if fine>0:
+        print("First pay overdue")
+        response=input("Paid or not (y/n)")
+        if response=="y":
+            print()
+        elif response=="n":
+            return
+        else:
+            print("Wrong response entered")
+            return
+
+
+
+    books_issued=no_of_book_issued(enrollment_no)
+    if books_issued==2:
+        print("Reached limit to publish books,already 2 books issued")
+        return
+
 
     print("\n1. Publish Book")
     print("2. Renew Book")
